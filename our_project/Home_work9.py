@@ -2,22 +2,23 @@ Phonebook = {}
 
 def input_error(func):
 
-    def wrapper():
+    def wrapper(*args, **kwargs):
         try:
-            return func()
-        except IndexError:
-            return "Give me name, old phone and new phone"
-        except KeyError:
-            return "Enter correct username"
+            return func(*args, *kwargs)
         except ValueError:
-            return "Enter username"
+            return f"Phone number has to be a number"
+        except IndexError:
+            if func.__name__ in ["add", "change"]:
+                return f"Give me name and phone please"
+            if func.__name__ == "phone":
+                return "Please give a name"
+        except KeyError as e:
+            return f"Not contact {e} in Phone book"
     return wrapper
+
 
 def hello():
     return "How can I help you?"
-
-def end_work():
-    return "Good bye"
 
 def modified_number(phone_number):
     new_phone = (
@@ -30,35 +31,44 @@ def modified_number(phone_number):
     )
     return new_phone
 
-@input_error
-def add(name, phone_number):
-    if name in Phonebook:
-        Phonebook[name].append(modified_number(phone_number))
-    if name not in Phonebook:
-        Phonebook[name] = []
-        Phonebook[name].append(modified_number(phone_number))
-    return f"Add new contact - {name} {modified_number(phone_number)}"
 
 @input_error
-def change(name: str, old_number: str, new_number):
-    if name in Phonebook:
-        Phonebook[name].remove(modified_number(old_number))
-        Phonebook[name].append(modified_number(new_number))
-    return f"Change contact {name} - number {modified_number(old_number)} to number {modified_number(new_number)}"
+def add(user_data):
+    if not user_data.split()[2].isnumeric():
+        raise ValueError
+    Phonebook[user_data.split()[1]] = user_data.split()[2]
+    return f"Number {user_data.split()[2]} for {user_data.split()[1]} has been added"
 
 @input_error
-def phone(name):
-    phones = ""
-    for i in Phonebook[name]:
-        phones += i + " "
-    return phones
+def change(user_data):
+    if not user_data.split()[2].isnumeric():
+        raise ValueError
+    if user_data.split()[1] in Phonebook.keys():
+        Phonebook[user_data.split()[1]] = user_data.split()[2]
+        return f"Number {user_data.split()[2]} for {user_data.split()[1]} has been changed"
+    else:
+        raise KeyError(user_data.split()[1])
 
-COMMANDS = {hello: ['hello', 'hi'],
-            phone: ['phone'],
-            add: ['add'],
-            change: ['change'],
-            end_work: ['.', 'bye', 'good bye', 'close', 'exit']
-            }
+
+@input_error
+def phone(user_data):
+    return Phonebook[user_data.split()[1]]
+
+def show_all():
+    return Phonebook
+
+
+def end_work():
+    return "Good bye"
+
+
+
+COMMANDS = {"hello": hello,
+            "add": add,
+            "change": change,
+            "phone": phone,
+            "show": show_all,
+            "end_work": end_work}
 
 def parser(command):
     if command.lower() == "hello":
@@ -71,18 +81,24 @@ def parser(command):
         return "change"
     if command.split()[0].lower() == "phone":
         return "phone"
+    if command.split()[0].lower() == "show":
+        return "show"
     else:
-        return "wronge_command"
+        return "wrong_command"
 
-def bot():
+
+def main():
     while True:
-        user_command = input(">> ")
+        user_command = input(">>> ")
         command = parser(user_command)
         if command == "end_work":
             print(COMMANDS["end_work"]())
             break
         if command == "hello":
             print(COMMANDS["hello"]())
+            continue
+        if command == "show":
+            print(COMMANDS["show"]())
             continue
         if command == "wrong_command":
             print("Wrong command")
@@ -91,4 +107,4 @@ def bot():
 
 
 if __name__ == "__main__":
-    bot()
+    main()
