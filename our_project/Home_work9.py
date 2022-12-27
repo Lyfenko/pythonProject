@@ -2,108 +2,83 @@ Phonebook = {}
 
 def input_error(func):
 
-    def wrapper(*args, **kwargs):
+    def wrapper(*args):
         try:
-            return func(*args, *kwargs)
-        except ValueError:
-            return f"Phone number has to be a number"
+            return func(*args)
         except IndexError:
-            if func.__name__ in ["add", "change"]:
-                return f"Give me name and phone please"
-            if func.__name__ == "phone":
-                return "Please give a name"
-        except KeyError as e:
-            return f"Not contact {e} in Phone book"
+            return "Please, enter the name and number"
+        except ValueError:
+            return "Enter a valid number"
+        except KeyError:
+            return "No such name in phonebook"
+
     return wrapper
 
 
-def hello():
+def hello(*args):
     return "How can I help you?"
 
-def modified_number(phone_number):
-    new_phone = (
-        phone_number.strip()
-        .removeprefix("+")
-        .replace("(", "")
-        .replace(")", "")
-        .replace("-", "")
-        .replace(" ", "")
-    )
-    return new_phone
-
 
 @input_error
-def add(user_data):
-    if not user_data.split()[2].isnumeric():
-        raise ValueError
-    Phonebook[user_data.split()[1]] = user_data.split()[2]
-    return f"Number {user_data.split()[2]} for {user_data.split()[1]} has been added"
-
-@input_error
-def change(user_data):
-    if not user_data.split()[2].isnumeric():
-        raise ValueError
-    if user_data.split()[1] in Phonebook.keys():
-        Phonebook[user_data.split()[1]] = user_data.split()[2]
-        return f"Number {user_data.split()[2]} for {user_data.split()[1]} has been changed"
+def add(*args):
+    name = args[0]
+    phone = args[1]
+    if name not in Phonebook:
+        Phonebook[name] = phone
     else:
-        raise KeyError(user_data.split()[1])
+        return f"The name {name} already exists."
+    return f"Contact {name} added successfully"
+
+@input_error
+def change_phone(*args):
+    name = args[0]
+    phone = args[1]
+    if name in Phonebook:
+        Phonebook[name] = phone
+    else:
+        return f"Please add {name} to phonebook firstly"
+    return f"Contact {name} changed successfully"
 
 
 @input_error
-def phone(user_data):
-    return Phonebook[user_data.split()[1]]
+def phone(*args):
+    return Phonebook[args[0]]
 
-def show_all():
-    return Phonebook
+def show_all(*args):
+    lst = ["{:^10}: {:>10}".format(k, v) for k, v in Phonebook.items()]
+    return "\n".join(lst)
 
 
-def end_work():
+def end_work(*args):
     return "Good bye"
 
 
 
-COMMANDS = {"hello": hello,
-            "add": add,
-            "change": change,
-            "phone": phone,
-            "show": show_all,
-            "end_work": end_work}
+COMMANDS = {hello: ["hello", "hi"],
+            change_phone: ["change"],
+            phone: ["phone"],
+            end_work: ["exit", "close", "good bye", ".", "bye"],
+            add: ["add"],
+            show_all: ["show all", "show"]
+            }
 
-def parser(command):
-    if command.lower() == "hello":
-        return "hello"
-    if command.lower() in ["good bye", "close", "exit"]:
-        return "end_work"
-    if command.split()[0].lower() == "add":
-        return "add"
-    if command.split()[0].lower() == "change":
-        return "change"
-    if command.split()[0].lower() == "phone":
-        return "phone"
-    if command.split()[0].lower() == "show":
-        return "show"
-    else:
-        return "wrong_command"
+def parse_command(user_input: str):
+    for k, v in COMMANDS.items():
+        for i in v:
+            if user_input.lower().startswith(i.lower()):
+                return k, tuple(user_input[len(i):].strip().split(" "))
 
 
 def main():
     while True:
-        user_command = input(">>> ")
-        command = parser(user_command)
-        if command == "end_work":
-            print(COMMANDS["end_work"]())
-            break
-        if command == "hello":
-            print(COMMANDS["hello"]())
-            continue
-        if command == "show":
-            print(COMMANDS["show"]())
-            continue
-        if command == "wrong_command":
-            print("Wrong command")
-            continue
-        print(COMMANDS[command](user_command))
+        user_input = input(">>> ")
+        try:
+            result, data = parse_command(user_input)
+            print(result(*data))
+            if result is exit:
+                break
+        except TypeError:
+            print("No such command")
 
 
 if __name__ == "__main__":
