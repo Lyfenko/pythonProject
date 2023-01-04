@@ -20,37 +20,56 @@ class Field:
 class Name(Field):
     def __init__(self, value):
         super().__init__(value)
+        self.__value = None
+        self.value = value
 
-@Field.value.setter
-def value(self, value):
-    if value.isalpha():
-        Field.value.fset(self, value)
-    else:
-        raise ValueError
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, value):
+        if value.isalpha():
+            self.__value = value
+        else:
+            raise ValueError
 
 class Phone(Field):
     def __init__(self, value):
         super().__init__(value)
+        self.__value = None
+        self.value = value
 
-@Field.value.setter
-def value(self, value):
-    if value.replace("+", "").replace("(", "").replace(")", "").isdigit():
-        Field.value.fset(self, value)
-    else:
-        raise ValueError
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, value):
+        if value.replace("+", "").replace("(", "").replace(")", "").isdigit():
+            self.__value = value
+        else:
+            raise ValueError
 
 
 class Birthday(Field):
     def __init__(self, value):
         super().__init__(value)
+        self.__value = None
+        self.value = value
 
-@Field.value.setter
-def value(self, value):
-    try:
-        datetime.strptime(value, "%Y-%m-%d")
-        Field.value.fset(self, value)
-    except:
-        Field.value.fset(self, "")
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, value):
+        try:
+            datetime.strptime(value, "%Y-%m-%d")
+            self.__value = value
+        except:
+            self.__value = value
+
 
 class Record:
     def __init__(self, name: Name, phone: list = None, birthday: Birthday = None):
