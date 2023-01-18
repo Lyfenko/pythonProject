@@ -247,8 +247,8 @@ COMMANDS = {hello: ["hello", "hi"],
             del_number: ["delete"],
             days_to_b_day: ["tell days to birthday"],
             view: ["all users"],
-			find_text: ["find"]
-			}
+	    find_text: ["find"]
+	   }
 
 def parse_command(user_input: str):
     for k, v in COMMANDS.items():
